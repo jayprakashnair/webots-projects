@@ -6,10 +6,11 @@ from queue import Queue
 from controller import Robot
 
 
-qfile = open('qlog.txt','w+')
-rewardfile = open('rewardfile.txt','w+') 
-qsumfile = open('qsumfile.txt','w+') 
-epsilonfile = open('epsilon.txt','w+') 
+qfile = open('qlog.txt','w')
+crewardfile = open('cummulative_rewardfile.txt','w') 
+rewardfile = open('rewardfile.txt','w') 
+qsumfile = open('qsumfile.txt','w') 
+epsilonfile = open('epsilon.txt','w') 
 
 TIME_STEP = 64
 MAX_SPEED = 6.28
@@ -118,6 +119,7 @@ while robot.step(TIME_STEP) != -1:
 
         if obstacle:
             flag = Obstacle_Avoider()
+            count += 1
 
             if flag == 1:
                 NEXT_STATE = (STATE + 1) % 10
@@ -146,26 +148,25 @@ while robot.step(TIME_STEP) != -1:
             UPDATE(STATE, NEXT_STATE, ACTION, REWARD, ALPHA, GAMMA)
             STATE = NEXT_STATE
             EPSILON = DECAY(EPSILON)
-            epsilonfile.write(f"{str(EPSILON)}\n")
-            if EPSILON < 0.5:
-                EPSILON = 0.9
-                time.sleep(7)
+            # Calculate the sum of all Q values
+            qsum = sum(sum(ql) for ql in Q)
+            # print(f"Cummulative q: {qsum}")
+            qsumfile.write(f"{str(count)}\t{str(qsum)}\n")
+            epsilonfile.write(f"{str(count)}\t{str(EPSILON)}\n")
+            
+            CREWARD += REWARD
+            
+            rewardfile.write(f"{str(count)}\t{str(REWARD)}\n")
+            # print(f"Cummulative Reward: {CREWARD}")
+            # Write Q matrix to qfile and compute qsum
+            qfile.write(str(Q))
+            qfile.write("\n******************\n")
+
+            # Calculate the sum of all Q values
+
+            # Write cumulative reward to rewardf
+            crewardfile.write(f"{str(count)}\t{str(CREWARD)}\n")
         
-    CREWARD += REWARD
-    count += 1
-
-    print(f"Cummulative Reward: {CREWARD}")
-    # Write Q matrix to qfile and compute qsum
-    qfile.write(str(Q))
-    qfile.write("\n******************\n")
-
-    # Calculate the sum of all Q values
-    qsum = sum(sum(ql) for ql in Q)
-    print(f"Cummulative q: {qsum}")
-    qsumfile.write(f"{str(count)}\t{str(qsum)}\n")
-
-    # Write cumulative reward to rewardf
-    rewardfile.write(f"{str(count)}\t{str(CREWARD)}\n")
         
 print(Q)
            
