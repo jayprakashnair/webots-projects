@@ -1,17 +1,21 @@
 import random
 import time
 import numpy as np
+import os
+import csv
 
 from collections import deque
 from controller import Robot
 
 
-qfile = open('qlog.txt','w+')
-rewardfile = open('rewardfile.txt','w+') 
-qsumfile = open('qsumfile.txt','w+') 
-epsilonfile = open('epsilon.txt','w+') 
-epsilonnewfile = open('epsilonnew.txt','w+') 
-gradientfile = open('gradient.txt','w+') 
+qfile = open('qlog.txt','w')
+q_saturation_pointfile = open('q_saturation_point.txt','w')
+crewardfile = open('cummulative_rewardfile.txt','w') 
+qsumfile = open('qsumfile.txt','w') 
+epsilonfile = open('epsilon.txt','w') 
+gradientfile = open('R_OLD.txt','w') 
+rewardfile = open('rewardfile.txt','w') 
+rewardquefile = open('rewardque.txt','w') 
 
 
 TIME_STEP = 64
@@ -33,6 +37,7 @@ NO_OF_ACTIONS=4
 Q = [[0.0] * 4 for _ in range(10)]
 REWARDS = [[-10,-2,-1,10] for _ in range(10)]
 CREWARD=0
+qsum = None
 
 # Resource calculation
 RESOURCE_MAX = 100
@@ -43,6 +48,10 @@ rewards_queue = deque(maxlen= SIZE_OF_REWARD_QUEUE)
 resource_flag = False
 difference_sum = 0 
 old_gradient = 0
+epsilon_start = True
+saturation_queue_size = 100
+saturation_queue = deque(maxlen= saturation_queue_size)
+saturation_point = False
 
 
 
@@ -122,8 +131,8 @@ def UPDATE(S,NEXT_S,A,R,LEARNING_RATE,DISCOUNT_FACTOR):
 def RESOURCE_CALC(reward):
     global old_gradient
     rewards_queue.append(reward)
-    diff_sum = old_gradient + (rewards_queue[-2] - rewards_queue[-1])
-    old_gradient =  diff_sum - (rewards_queue[0] - rewards_queue[1])
+    diff_sum = old_gradient + (rewards_queue[-1] - rewards_queue[-2])
+    old_gradient =  diff_sum - (rewards_queue[1] - rewards_queue[0])
     squeezing_factor =  diff_sum/SIZE_OF_REWARD_QUEUE
     R_NEW = (R_OLD + ((R_OLD/RESOURCE_MAX)* squeezing_factor))
 
@@ -144,10 +153,65 @@ def REWARD_ACCUMULATION(reward):
     if(len(rewards_queue) == rewards_queue.maxlen):
         diff_sum = 0 
         for i in range(len(rewards_queue)-1):
-            diff_sum += (rewards_queue[i] - rewards_queue[i+1])
-        old_gradient =  diff_sum - (rewards_queue[0] - rewards_queue[1])
+            diff_sum += (rewards_queue[i+1] - rewards_queue[i])
+        old_gradient =  diff_sum - (rewards_queue[1] - rewards_queue[0])
         resource_flag = True
 
+
+def find_saturation_point(qvalue, count, Q, threshold=0.5):
+    """
+    Iteratively adds values to a queue and checks for saturation.
+    """
+    global saturation_point
+    saturation_queue.append(qvalue)
+    if (len(saturation_queue) == saturation_queue.maxlen):
+        print("saturation point queue is full")
+        print("\n^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n")
+        std_dev = np.std(saturation_queue)
+        if std_dev < threshold:
+            saturation_point = True
+            q_saturation_pointfile.write(f"Iteration number: {str(count)}, Q-table: {list(Q)}")
+            print(f"reached saturation point: {i}, standard_deviation: {std_dev} saturation point: {str(saturation_queue[i])} ")
+            print("\n$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n")
+
+def create_csv_files(directory="state_files", num_files=10):
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+    
+    for i in range(1, num_files + 1):
+        file_name = f"state_{i}.csv"
+        file_path = os.path.join(directory, file_name)
+        
+        data = [
+            ["Iteration number", "0:FORWARD", "1:BACKWARD", "2:stop", "3:LEFT"]
+        ]
+
+        with open(file_path, mode='w', newline='') as file:
+            writer = csv.writer(file)
+            writer.writerows(data)
+
+def add_statewise_actions_to_files(q, count):
+    directory = "state_files"
+    
+    for i in range(10):
+        file_name = f"state_{i+1}.csv"
+        file_path = os.path.join(directory, file_name)
+        
+        # Format the state values
+        q_values_state = [f"{count}", f"{q[i][0]}", f"{q[i][1]}", f"{q[i][2]}", f"{q[i][3]}"]
+
+        # Check if the file exists and append the data
+        if os.path.exists(file_path):
+            # Open the file in append mode and write the row
+            with open(file_path, mode='a', newline='') as file:
+                writer = csv.writer(file)
+                writer.writerow(q_values_state)  # Use writerow for a single row
+
+        else:
+            print(f"File {file_path} does not exist.")
+
+
+create_csv_files()
 
 while robot.step(TIME_STEP) != -1:
     # Initialize sensors
@@ -163,6 +227,7 @@ while robot.step(TIME_STEP) != -1:
 
         if obstacle:
             flag = Obstacle_Avoider()
+            count += 1
 
             if flag == 1:
                 NEXT_STATE = (STATE + 1) % 10
@@ -190,37 +255,44 @@ while robot.step(TIME_STEP) != -1:
         if ACTION_TAKEN:
             UPDATE(STATE, NEXT_STATE, ACTION, REWARD, ALPHA, GAMMA)
             STATE = NEXT_STATE
-            EPSILON = DECAY(EPSILON)
-            epsilonfile.write(f"{str(EPSILON)}\n")
+            CREWARD += REWARD
             
-            if resource_flag == False:
+            if not resource_flag:
+                print(f"reward accumulation: {list(rewards_queue)}")
                 REWARD_ACCUMULATION(REWARD)
             else:
                 R_OLD = RESOURCE_CALC(REWARD)
+                print(f"resource calc: {R_OLD}")
 
-            gradientfile.write(f"{str(R_OLD)}\n")
+            # gradientfile.write(f"{str(R_OLD)}\n")
+            qsum = sum(sum(ql) for ql in Q)
+            qsumfile.write(f"{str(count)}\t{str(qsum)}\n")
 
-            if EPSILON < 0.35:
+            if not saturation_point:
+                EPSILON = DECAY(EPSILON)   
+                print(f"EPSILON DECAY:{EPSILON}")             
+                find_saturation_point(qsum, count, Q)
+            else:
+                print(f"EPSILON NO MORE DECAY:{EPSILON}")
+                print("\n#########################################\n")             
+                rewardquefile.write(f"Added reward: {REWARD}, Queue: {list(rewards_queue)}, R_NEW: {R_OLD}")
+                print(f"epsilon entered: {R_OLD}")
+                rewardquefile.write("\n**********************\n")
                 EPSILON = R_OLD * 0.01
-                epsilonnewfile.write(f"{str(EPSILON)}\n")
-                time.sleep(7)
-
-        
-    CREWARD += REWARD
-    count += 1
-
-    print(f"Cummulative Reward: {CREWARD}")
-    # Write Q matrix to qfile and compute qsum
-    qfile.write(str(Q))
-    qfile.write("\n******************\n")
+            
+            gradientfile.write(f"{str(count)}\t{str(R_OLD)}\n")
+            epsilonfile.write(f"{str(count)}\t{str(EPSILON)}\n")
+            rewardfile.write(f"{str(count)}\t{str(REWARD)}\n")
+            # Write Q matrix to qfile and compute qsum
+            qfile.write(str(Q))
+            qfile.write("\n******************\n")
+            crewardfile.write(f"{str(count)}\t{str(CREWARD)}\n")
+            
+            add_statewise_actions_to_files(Q, count)  
 
     # Calculate the sum of all Q values
-    qsum = sum(sum(ql) for ql in Q)
-    print(f"Cummulative q: {qsum}")
-    qsumfile.write(f"{str(count)}\t{str(qsum)}\n")
 
     # Write cumulative reward to rewardf
-    rewardfile.write(f"{str(count)}\t{str(CREWARD)}\n")
         
 print(Q)
            
