@@ -1,0 +1,56 @@
+#VRML_SIM R2023b utf8
+
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023b/projects/objects/backgrounds/protos/TexturedBackground.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023b/projects/objects/backgrounds/protos/TexturedBackgroundLight.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023b/projects/objects/floors/protos/RectangleArena.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023b/projects/robots/gctronic/e-puck/protos/E-puck.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023b/projects/objects/factory/containers/protos/WoodenBox.proto"
+
+WorldInfo {
+}
+Viewpoint {
+  orientation -0.504748413531468 0.47533760224355104 0.7206130743546205 1.9491277009458634
+  position 0.07788832718568275 -1.088613501189557 2.7840769632419406
+}
+TexturedBackground {
+}
+TexturedBackgroundLight {
+}
+RectangleArena {
+}
+WoodenBox {
+  translation -0.4399999162440622 8.375593785355117e-08 0.046468400173907375
+  rotation 0.7071067953909587 -0.7071067669821358 -1.3734045409062766e-08 2.2247828909570216e-09
+  size 0.1 0.1 0.1
+  mass 9
+}
+WoodenBox {
+  translation -0.4399999162440622 0.43000008375593757 0.04646840017390738
+  rotation 0.7071068066673112 -0.7071067557057826 2.7704653622469975e-08 2.2247830625902803e-09
+  name "wooden box(1)"
+  size 0.1 0.1 0.1
+  mass 9
+}
+WoodenBox {
+  translation 0.4400000837559378 -0.009999916244062136 0.046468400173907375
+  rotation 0.7071067447028738 -0.707106817670218 -4.395711312062666e-08 2.2247829411157878e-09
+  name "wooden box(3)"
+  size 0.1 0.1 0.1
+  mass 9
+}
+WoodenBox {
+  translation 0.040000416967150926 -0.4499988329070338 0.04646840071611957
+  rotation 0.0006159058508999957 -0.001786734598809152 0.9999982141181334 1.3708164379504098e-06
+  name "wooden box(2)"
+  size 0.1 0.1 0.1
+  mass 9
+}
+E-puck {
+  hidden position_0_0 47.46267097003461
+  hidden position_0_1 58.0320341066848
+  hidden rotation_1 0 -1 0 2.8028114874020833
+  hidden rotation_2 0 -1 0 4.799818965111068
+  translation -0.311274 -0.195422 0.00086511
+  rotation 0.000714659168837784 0.00021216260968841356 0.9999997221246111 -2.5644223223258926
+  controller "next_states"
+}

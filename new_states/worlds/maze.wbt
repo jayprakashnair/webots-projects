@@ -1,0 +1,77 @@
+#VRML_SIM R2023b utf8
+
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023b/projects/objects/backgrounds/protos/TexturedBackground.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023b/projects/objects/backgrounds/protos/TexturedBackgroundLight.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023b/projects/objects/floors/protos/RectangleArena.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023b/projects/robots/gctronic/e-puck/protos/E-puck.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023b/projects/objects/apartment_structure/protos/Wall.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023b/projects/appearances/protos/Roughcast.proto"
+
+WorldInfo {
+}
+Viewpoint {
+  orientation -0.5173001989343745 0.565375880872404 0.6424567047748899 1.9172445784022079
+  position 0.2982015710345437 -1.172915653083575 4.490817523138724
+}
+TexturedBackground {
+}
+TexturedBackgroundLight {
+}
+RectangleArena {
+  floorSize 2 2
+}
+Wall {
+  translation 0.5 0.14004 0.05
+  rotation 1 0 0 1.57
+  size 0.5 0.1 0.01
+}
+Wall {
+  translation -0.51 -0.33996 0.0503856
+  rotation 1 0 0 1.57
+  name "wall(1)"
+  size 1 0.1 0.01
+}
+Wall {
+  translation 0.27 -0.74996 0.0507122
+  rotation 1 0 0 1.57
+  name "wall(5)"
+  size 1 0.1 0.01
+}
+Wall {
+  translation -0.48 -0.49996 0.0505089
+  rotation -0.5771968951617173 0.577656895078166 0.5771968951617173 -2.093935307179586
+  name "wall(2)"
+  size 1 0.1 0.01
+}
+Wall {
+  translation -0.22 0.52004 0.0496941
+  rotation -0.5771968951617173 0.577656895078166 0.5771968951617173 -2.093935307179586
+  name "wall(3)"
+  size 1 0.1 0.01
+}
+Wall {
+  translation 0.52 0.52004 0.0496941
+  rotation -0.5771968951617173 0.577656895078166 0.5771968951617173 -2.093935307179586
+  name "wall(7)"
+  size 1 0.1 0.01
+}
+Wall {
+  translation -0.7 0.49004 0.0497187
+  rotation -0.5771968951617173 0.577656895078166 0.5771968951617173 -2.093935307179586
+  name "wall(6)"
+  size 1 0.1 0.01
+}
+Wall {
+  translation 0.31 -0.60996 0.0505962
+  rotation -0.5771968951617173 0.577656895078166 0.5771968951617173 -2.093935307179586
+  name "wall(4)"
+  size 0.6 0.1 0.02
+  appearance Roughcast {
+    textureTransform TextureTransform {
+    }
+  }
+}
+E-puck {
+  translation 0.72 -0.66 0
+  controller "maze_states"
+}
